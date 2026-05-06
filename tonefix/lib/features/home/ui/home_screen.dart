@@ -74,10 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocListener<ToneRewriteBloc, ToneRewriteState>(
-      listenWhen: (prev, curr) =>
-          curr.hasResult && !prev.hasResult,
+      listenWhen: (prev, curr) => curr.hasResult && !prev.hasResult,
       listener: (context, state) {
-        // Navigate to result screen when rewrite is done
         context.push(AppRoutes.rewrite, extra: state.result);
       },
       child: Scaffold(
@@ -310,10 +308,10 @@ class _ActionChip extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.2),
+            color: AppColors.primary.withValues(alpha: 0.2),
           ),
         ),
         child: Row(

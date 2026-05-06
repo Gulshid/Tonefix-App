@@ -229,7 +229,7 @@ class _HistoryCard extends StatelessWidget {
                   child: Icon(
                     Icons.arrow_downward_rounded,
                     size: 12.sp,
-                    color: result.tone.color.withOpacity(0.7),
+                    color: result.tone.color.withValues(alpha: 0.7),
                   ),
                 ),
                 Expanded(

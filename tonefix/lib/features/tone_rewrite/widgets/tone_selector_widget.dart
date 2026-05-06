@@ -28,7 +28,7 @@ class ToneSelectorWidget extends StatelessWidget {
         ),
         SizedBox(height: 12.h),
         SizedBox(
-          height: 110.h,
+          height: 130.h,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -90,7 +90,7 @@ class _ToneCard extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: tone.color.withOpacity(0.2),
+                    color: tone.color.withValues(alpha: 0.2),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -99,10 +99,11 @@ class _ToneCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,  // ← was spaceBetween
+          mainAxisSize: MainAxisSize.min,              // ← add this
           children: [
-            Text(tone.emoji, style: TextStyle(fontSize: 24.sp)),
-            SizedBox(height: 6.h),
+            Text(tone.emoji, style: TextStyle(fontSize: 22.sp)),
+            SizedBox(height: 4.h),
             Text(
               tone.label,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -114,6 +115,7 @@ class _ToneCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            SizedBox(height: 2.h),  // ← add small gap
             Text(
               tone.description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

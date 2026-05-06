@@ -69,10 +69,10 @@ class RewriteScreen extends StatelessWidget {
                         width: 40.w,
                         height: 40.w,
                         decoration: BoxDecoration(
-                          color: result.tone.color.withOpacity(0.15),
+                          color: result.tone.color.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: result.tone.color.withOpacity(0.3),
+                            color: result.tone.color.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Icon(
