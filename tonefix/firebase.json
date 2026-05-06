@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"tonefix-app","appId":"1:715990496723:android:402691e2d49288a186eb26","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"tonefix-app","appId":"1:715990496723:ios:7ec0534f55e3df4486eb26","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"tonefix-app","configurations":{"android":"1:715990496723:android:402691e2d49288a186eb26","ios":"1:715990496723:ios:7ec0534f55e3df4486eb26","web":"1:715990496723:web:d6f98b355c424e1386eb26","windows":"1:715990496723:web:3bd537d1f6356cd086eb26"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tonefix-app",
+          "appId": "1:715990496723:android:402691e2d49288a186eb26",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "tonefix-app",
+          "appId": "1:715990496723:ios:7ec0534f55e3df4486eb26",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tonefix-app",
+          "configurations": {
+            "android": "1:715990496723:android:402691e2d49288a186eb26",
+            "ios": "1:715990496723:ios:7ec0534f55e3df4486eb26",
+            "web": "1:715990496723:web:d6f98b355c424e1386eb26",
+            "windows": "1:715990496723:web:3bd537d1f6356cd086eb26"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
