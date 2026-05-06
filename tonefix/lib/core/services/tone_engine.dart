@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 class ToneEngine {
   ToneEngine({required String apiKey})
       : _model = GenerativeModel(
-          model: 'gemini-2.0-flash',
+          model: 'gemini-2.5-flash',
           apiKey: apiKey,
           generationConfig: GenerationConfig(
             temperature: 0.7,
