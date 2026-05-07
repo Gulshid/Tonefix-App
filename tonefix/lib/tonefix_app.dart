@@ -81,7 +81,7 @@ class _AppEntry extends StatelessWidget {
   }
 }
 
-/// Responsive design size — mirrors your demo app pattern
+/// Responsive design size — mirrors your  app pattern
 Size _designSize(double width) {
   if (width < 600) return const Size(360, 800);   // phone
   if (width < 1200) return const Size(834, 1194); // tablet

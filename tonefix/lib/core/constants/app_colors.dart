@@ -1,42 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// ToneFix Design Tokens
-/// All colours used across the app defined in one place.
+/// ToneFix Design Tokens — Theme: Fintech / Banking
+/// Deep navy authority meets crisp cyan precision.
+/// Trusted, secure, institutional — yet modern.
 abstract class AppColors {
   // ─── Brand ───────────────────────────────────────────────────────
-  static const primary = Color(0xFF6C5CE7);       // Violet
-  static const primaryLight = Color(0xFF8F7FF0);
-  static const primaryDark = Color(0xFF4B3DC8);
-  static const accent = Color(0xFF00CEC9);         // Teal accent
+  static const primary        = Color(0xFF0A2540); // Deep navy
+  static const primaryLight   = Color(0xFF1A4A7A);
+  static const primaryDark    = Color(0xFF061628);
+  static const accent         = Color(0xFF00D4FF); // Electric cyan
 
   // ─── Tone Badge Colours ──────────────────────────────────────────
-  static const toneProfessional = Color(0xFF2D3436);
-  static const toneFriendly = Color(0xFFFDAA3B);
-  static const toneAssertive = Color(0xFFE17055);
-  static const toneEmpathetic = Color(0xFFE84393);
-  static const toneDiplomatic = Color(0xFF00B894);
-  static const toneCustom = Color(0xFF6C5CE7);
+  static const toneProfessional = Color(0xFF0A2540);
+  static const toneFriendly     = Color(0xFF00D4FF);
+  static const toneAssertive    = Color(0xFF1652F0); // Coinbase-style blue
+  static const toneEmpathetic   = Color(0xFF05C3A0);
+  static const toneDiplomatic   = Color(0xFF635BFF); // Stripe-style violet
+  static const toneCustom       = Color(0xFF1A4A7A);
 
   // ─── Neutrals ────────────────────────────────────────────────────
   static const white = Color(0xFFFFFFFF);
-  static const black = Color(0xFF0D0D0D);
+  static const black = Color(0xFF03090F);
 
   // ─── Light surface ───────────────────────────────────────────────
-  static const surfaceLight = Color(0xFFF8F7FF);
-  static const cardLight = Color(0xFFFFFFFF);
-  static const borderLight = Color(0xFFE8E4FF);
-  static const textPrimaryLight = Color(0xFF1A1A2E);
-  static const textSecondaryLight = Color(0xFF6B6B8A);
+  static const surfaceLight       = Color(0xFFF4F7FB);
+  static const cardLight          = Color(0xFFFFFFFF);
+  static const borderLight        = Color(0xFFD6E4F0);
+  static const textPrimaryLight   = Color(0xFF0A2540);
+  static const textSecondaryLight = Color(0xFF546E8A);
 
   // ─── Dark surface ────────────────────────────────────────────────
-  static const surfaceDark = Color(0xFF0F0F1A);
-  static const cardDark = Color(0xFF1A1A2E);
-  static const borderDark = Color(0xFF2D2D4A);
-  static const textPrimaryDark = Color(0xFFF0EEFF);
-  static const textSecondaryDark = Color(0xFF9090B0);
+  static const surfaceDark       = Color(0xFF03090F);
+  static const cardDark          = Color(0xFF0A1628);
+  static const borderDark        = Color(0xFF112240);
+  static const textPrimaryDark   = Color(0xFFE8F1FB);
+  static const textSecondaryDark = Color(0xFF6B90B0);
 
   // ─── Status ──────────────────────────────────────────────────────
-  static const success = Color(0xFF00B894);
-  static const error = Color(0xFFE17055);
-  static const warning = Color(0xFFFDAA3B);
+  static const success = Color(0xFF05C3A0);
+  static const error   = Color(0xFFE53935);
+  static const warning = Color(0xFFFFA726);
 }
