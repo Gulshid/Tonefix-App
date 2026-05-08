@@ -1,335 +1,305 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tonefix/core/constants/app_colors.dart';
 import 'package:tonefix/core/theme/theme_cubit.dart';
-import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_bloc.dart';
-import 'package:tonefix/features/tone_rewrite/widgets/tone_selector_widget.dart';
 import 'package:tonefix/routes/app_router.dart';
-import 'package:tonefix/shared/widgets/app_button.dart';
 
-class HomeScreen extends StatefulWidget {
+/// Phase 2: Updated home screen with animated dark/light mode toggle (Task 5)
+/// and smooth entry animations for all elements.
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late final TextEditingController _controller;
-  static const _maxChars = 1000;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    _controller.addListener(_onTextChanged);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    context.read<ToneRewriteBloc>().add(
-          ToneRewriteUpdateInputEvent(_controller.text),
-        );
-  }
-
-  void _onPaste() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    if (data?.text != null && mounted) {
-      _controller.text = data!.text!;
-      _controller.selection = TextSelection.collapsed(
-        offset: _controller.text.length,
-      );
-    }
-  }
-
-  void _onClear() {
-    _controller.clear();
-    context.read<ToneRewriteBloc>().add(const ToneRewriteResetEvent());
-  }
-
-  void _onRewrite() {
-    final state = context.read<ToneRewriteBloc>().state;
-    if (!state.hasInput) return;
-
-    context.read<ToneRewriteBloc>().add(
-          ToneRewriteSubmitEvent(
-            text: state.inputText,
-            tone: state.selectedTone,
-          ),
-        );
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BlocListener<ToneRewriteBloc, ToneRewriteState>(
-      listenWhen: (prev, curr) => curr.hasResult && !prev.hasResult,
-      listener: (context, state) {
-        context.push(AppRoutes.rewrite, extra: state.result);
-      },
-      child: Scaffold(
-        appBar: _buildAppBar(context, isDark),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 8.h),
+    return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: SizedBox(height: 12.h)),
 
-                    // Hero tagline
-                    _buildTagline(context)
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: -0.2, end: 0),
+            // ── App bar with theme toggle ────────────────────────
+            SliverToBoxAdapter(child: _HomeAppBar()),
 
-                    SizedBox(height: 20.h),
+            SliverToBoxAdapter(child: SizedBox(height: 32.h)),
 
-                    // Input field
-                    _buildInputCard(context, isDark)
-                        .animate(delay: 100.ms)
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.1, end: 0),
+            // ── Hero section ─────────────────────────────────────
+            SliverToBoxAdapter(child: _HeroSection(isDark: isDark)),
 
-                    SizedBox(height: 24.h),
+            SliverToBoxAdapter(child: SizedBox(height: 36.h)),
 
-                    // Tone selector
-                    BlocBuilder<ToneRewriteBloc, ToneRewriteState>(
-                      buildWhen: (p, c) => p.selectedTone != c.selectedTone,
-                      builder: (context, state) {
-                        return ToneSelectorWidget(
-                          selectedTone: state.selectedTone,
-                          onToneSelected: (tone) {
-                            context.read<ToneRewriteBloc>().add(
-                                  ToneRewriteSelectToneEvent(tone),
-                                );
-                          },
-                        );
-                      },
-                    )
-                        .animate(delay: 200.ms)
-                        .fadeIn(duration: 400.ms),
+            // ── Quick action buttons ──────────────────────────────
+            SliverToBoxAdapter(child: _QuickActions()),
 
-                    SizedBox(height: 24.h),
-
-                    // Rewrite button
-                    _buildRewriteButton(context)
-                        .animate(delay: 300.ms)
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.2, end: 0),
-
-                    SizedBox(height: 32.h),
-                  ],
-                ),
-              ),
-            );
-          },
+            SliverToBoxAdapter(child: SizedBox(height: 48.h)),
+          ],
         ),
-      ),
-    );
-  }
-
-  AppBar _buildAppBar(BuildContext context, bool isDark) {
-    return AppBar(
-      title: Row(
-        children: [
-          Container(
-            width: 32.w,
-            height: 32.w,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.accent],
-              ),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Icon(
-              Icons.auto_fix_high_rounded,
-              color: AppColors.white,
-              size: 18.sp,
-            ),
-          ),
-          SizedBox(width: 10.w),
-          const Text('ToneFix'),
-        ],
-      ),
-      actions: [
-        // Theme toggle
-        IconButton(
-          onPressed: () => context.read<ThemeCubit>().toggle(),
-          icon: Icon(
-            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            size: 22.sp,
-          ),
-        ),
-        // History
-        IconButton(
-          onPressed: () => context.push(AppRoutes.history),
-          icon: Icon(Icons.history_rounded, size: 22.sp),
-        ),
-        SizedBox(width: 4.w),
-      ],
-    );
-  }
-
-  Widget _buildTagline(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Say it better.',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          Text(
-            'Paste any message, choose a tone, send with confidence.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputCard(BuildContext context, bool isDark) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Your Message',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          SizedBox(height: 8.h),
-          BlocBuilder<ToneRewriteBloc, ToneRewriteState>(
-            buildWhen: (p, c) => p.inputText.length != c.inputText.length,
-            builder: (context, state) {
-              return Stack(
-                children: [
-                  TextField(
-                    controller: _controller,
-                    maxLines: 7,
-                    minLines: 5,
-                    maxLength: _maxChars,
-                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) =>
-                        null, // hide default counter
-                    decoration: InputDecoration(
-                      hintText:
-                          'Type or paste your message here...\n\nE.g. "hey can u send me that file asap"',
-                    ),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    textInputAction: TextInputAction.newline,
-                  ),
-                  // Char counter
-                  Positioned(
-                    bottom: 10.h,
-                    right: 14.w,
-                    child: Text(
-                      '${state.inputText.length}/$_maxChars',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: state.inputText.length > _maxChars * 0.9
-                                ? AppColors.warning
-                                : null,
-                          ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          SizedBox(height: 8.h),
-          // Paste & clear row
-          Row(
-            children: [
-              _ActionChip(
-                icon: Icons.content_paste_rounded,
-                label: 'Paste',
-                onTap: _onPaste,
-              ),
-              SizedBox(width: 8.w),
-              _ActionChip(
-                icon: Icons.clear_rounded,
-                label: 'Clear',
-                onTap: _onClear,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRewriteButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: BlocBuilder<ToneRewriteBloc, ToneRewriteState>(
-        builder: (context, state) {
-          return AppButton(
-            label: state.isLoading ? 'Rewriting...' : 'Rewrite Message ✨',
-            isLoading: state.isLoading,
-            isEnabled: state.hasInput && !state.isLoading,
-            onPressed: _onRewrite,
-            icon: state.isLoading ? null : Icons.auto_fix_high_rounded,
-          );
-        },
       ),
     );
   }
 }
 
-class _ActionChip extends StatelessWidget {
-  const _ActionChip({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
+class _HomeAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.2),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Row(
+        children: [
+          // Logo mark
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Center(
+              child: Text(
+                'TF',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
+          SizedBox(width: 10.w),
+          Text(
+            'ToneFix',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+            ),
+          ),
+          const Spacer(),
+
+          // History button
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.history),
+            child: Icon(
+              Icons.history_rounded,
+              size: 22.sp,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+            ),
+          ),
+          SizedBox(width: 18.w),
+
+          // Phase 2 Task 5: Animated theme toggle
+          _AnimatedThemeToggle(),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0, duration: 400.ms);
+  }
+}
+
+/// Smooth animated dark/light mode toggle switch (Phase 2 – Task 5).
+class _AnimatedThemeToggle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cubit = context.read<ThemeCubit>();
+
+    return GestureDetector(
+      onTap: cubit.toggle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        width: 52.w,
+        height: 28.h,
+        padding: EdgeInsets.all(3.5.r),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.r),
+          color: isDark ? AppColors.primaryLight : const Color(0xFFDDE6F0),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            Icon(icon, size: 14.sp, color: AppColors.primary),
-            SizedBox(width: 6.w),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12.sp,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
+            // Sliding knob
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOutCubic,
+              alignment:
+                  isDark ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 22.w,
+                height: 22.w,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.accent : AppColors.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isDark ? AppColors.accent : AppColors.primary)
+                          .withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: Icon(
+                      isDark
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded,
+                      key: ValueKey(isDark),
+                      size: 13.sp,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HeroSection extends StatelessWidget {
+  const _HeroSection({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Say it better,\nevery time.',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 32.sp,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              color:
+                  isDark ? AppColors.textPrimaryDark : AppColors.primary,
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 100.ms, duration: 500.ms)
+              .slideY(begin: 0.1, end: 0, duration: 500.ms, curve: Curves.easeOut),
+          SizedBox(height: 12.h),
+          Text(
+            'Paste your message, pick a tone,\nand let AI do the rest — in seconds.',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14.sp,
+              height: 1.6,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 200.ms, duration: 500.ms)
+              .slideY(begin: 0.1, end: 0, duration: 500.ms, curve: Curves.easeOut),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Column(
+        children: [
+          // Primary CTA
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.rewrite),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 18.h),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(18.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.4),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.auto_fix_high_rounded,
+                      color: AppColors.accent, size: 22.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Start Rewriting',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 300.ms, duration: 500.ms)
+              .slideY(begin: 0.12, end: 0, duration: 500.ms, curve: Curves.easeOut),
+
+          SizedBox(height: 14.h),
+
+          // Secondary CTA - history
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.history),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18.r),
+                border: Border.all(color: AppColors.borderLight, width: 1.5),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.history_rounded,
+                      color: AppColors.primary, size: 20.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'View History',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 400.ms, duration: 500.ms)
+              .slideY(begin: 0.12, end: 0, duration: 500.ms, curve: Curves.easeOut),
+        ],
       ),
     );
   }

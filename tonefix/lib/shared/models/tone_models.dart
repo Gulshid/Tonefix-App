@@ -1,9 +1,7 @@
-import 'package:equatable/equatable.dart';
-import 'package:tonefix/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:tonefix/core/constants/app_colors.dart';
 
-// ─── Tone Type Enum ───────────────────────────────────────────────────────────
-
+/// All supported tone types for message rewriting.
 enum ToneType {
   professional,
   friendly,
@@ -12,108 +10,81 @@ enum ToneType {
   diplomatic,
   custom;
 
-  String get label {
-    switch (this) {
-      case ToneType.professional:
-        return 'Professional';
-      case ToneType.friendly:
-        return 'Friendly';
-      case ToneType.assertive:
-        return 'Assertive';
-      case ToneType.empathetic:
-        return 'Empathetic';
-      case ToneType.diplomatic:
-        return 'Diplomatic';
-      case ToneType.custom:
-        return 'Custom';
-    }
-  }
+  String get label => switch (this) {
+        ToneType.professional => 'Professional',
+        ToneType.friendly     => 'Friendly',
+        ToneType.assertive    => 'Assertive',
+        ToneType.empathetic   => 'Empathetic',
+        ToneType.diplomatic   => 'Diplomatic',
+        ToneType.custom       => 'Custom',
+      };
 
-  String get emoji {
-    switch (this) {
-      case ToneType.professional:
-        return '💼';
-      case ToneType.friendly:
-        return '😊';
-      case ToneType.assertive:
-        return '💪';
-      case ToneType.empathetic:
-        return '❤️';
-      case ToneType.diplomatic:
-        return '🤝';
-      case ToneType.custom:
-        return '✨';
-    }
-  }
+  String get emoji => switch (this) {
+        ToneType.professional => '💼',
+        ToneType.friendly     => '😊',
+        ToneType.assertive    => '⚡',
+        ToneType.empathetic   => '💚',
+        ToneType.diplomatic   => '🕊️',
+        ToneType.custom       => '✨',
+      };
 
-  String get description {
-    switch (this) {
-      case ToneType.professional:
-        return 'Clear, formal & work-ready';
-      case ToneType.friendly:
-        return 'Warm, casual & approachable';
-      case ToneType.assertive:
-        return 'Confident & direct';
-      case ToneType.empathetic:
-        return 'Kind, caring & supportive';
-      case ToneType.diplomatic:
-        return 'Tactful & balanced';
-      case ToneType.custom:
-        return 'Your own style';
-    }
-  }
+  String get description => switch (this) {
+        ToneType.professional => 'Polished & business-ready',
+        ToneType.friendly     => 'Warm, approachable & casual',
+        ToneType.assertive    => 'Direct, confident & clear',
+        ToneType.empathetic   => 'Caring & emotionally aware',
+        ToneType.diplomatic   => 'Tactful & conflict-aware',
+        ToneType.custom       => 'Your own custom style',
+      };
 
-  Color get color {
-    switch (this) {
-      case ToneType.professional:
-        return AppColors.toneProfessional;
-      case ToneType.friendly:
-        return AppColors.toneFriendly;
-      case ToneType.assertive:
-        return AppColors.toneAssertive;
-      case ToneType.empathetic:
-        return AppColors.toneEmpathetic;
-      case ToneType.diplomatic:
-        return AppColors.toneDiplomatic;
-      case ToneType.custom:
-        return AppColors.toneCustom;
-    }
-  }
+  Color get color => switch (this) {
+        ToneType.professional => AppColors.toneProfessional,
+        ToneType.friendly     => AppColors.toneFriendly,
+        ToneType.assertive    => AppColors.toneAssertive,
+        ToneType.empathetic   => AppColors.toneEmpathetic,
+        ToneType.diplomatic   => AppColors.toneDiplomatic,
+        ToneType.custom       => AppColors.toneCustom,
+      };
 
-  /// System prompt instruction sent to Gemini
-  String get promptInstruction {
-    switch (this) {
-      case ToneType.professional:
-        return 'Rewrite the following message in a clear, formal, and professional tone suitable for workplace communication. '
-            'Remove slang, be concise, and maintain a respectful demeanor.';
-      case ToneType.friendly:
-        return 'Rewrite the following message in a warm, casual, and friendly tone. '
-            'Use approachable language, be personable, and make it feel like a conversation between friends.';
-      case ToneType.assertive:
-        return 'Rewrite the following message in a confident, direct, and assertive tone. '
-            'Be clear about needs and boundaries without being aggressive. State points firmly.';
-      case ToneType.empathetic:
-        return 'Rewrite the following message in a kind, empathetic, and emotionally aware tone. '
-            'Acknowledge feelings, show understanding, and be supportive and compassionate.';
-      case ToneType.diplomatic:
-        return 'Rewrite the following message in a tactful, balanced, and diplomatic tone. '
-            'Soften harsh points, find middle ground, and phrase everything to preserve relationships.';
-      case ToneType.custom:
-        return 'Rewrite the following message.'; // overridden by custom prompt
-    }
-  }
+  Color get lightColor => switch (this) {
+        ToneType.professional => const Color(0xFFE8EEF5),
+        ToneType.friendly     => const Color(0xFFE0FAFF),
+        ToneType.assertive    => const Color(0xFFE8EDFF),
+        ToneType.empathetic   => const Color(0xFFE0FBF5),
+        ToneType.diplomatic   => const Color(0xFFEFEDFF),
+        ToneType.custom       => const Color(0xFFEAF0F8),
+      };
+
+  String get promptInstruction => switch (this) {
+        ToneType.professional =>
+          'Rewrite the following message in a professional, formal, and business-appropriate tone. '
+          'Use clear, concise language. Avoid slang or casual expressions.',
+        ToneType.friendly =>
+          'Rewrite the following message in a warm, friendly, and approachable tone. '
+          'Use conversational language and a positive, upbeat style.',
+        ToneType.assertive =>
+          'Rewrite the following message in a confident, direct, and assertive tone. '
+          'Be clear and firm without being aggressive. State points decisively.',
+        ToneType.empathetic =>
+          'Rewrite the following message with empathy and emotional awareness. '
+          'Show understanding, compassion, and genuine care for the recipient\'s feelings.',
+        ToneType.diplomatic =>
+          'Rewrite the following message in a diplomatic and tactful tone. '
+          'Balance honesty with sensitivity. Avoid confrontational language.',
+        ToneType.custom =>
+          'Rewrite the following message in a thoughtful and improved tone.',
+      };
 }
 
-// ─── Rewrite Result ───────────────────────────────────────────────────────────
-
-class RewriteResult extends Equatable {
+/// Result of a single AI tone rewrite operation.
+class RewriteResult {
   const RewriteResult({
     required this.id,
     required this.originalText,
     required this.rewrittenText,
     required this.tone,
     required this.createdAt,
-    this.customToneName,
+    this.customInstruction,
   });
 
   final String id;
@@ -121,7 +92,7 @@ class RewriteResult extends Equatable {
   final String rewrittenText;
   final ToneType tone;
   final DateTime createdAt;
-  final String? customToneName;
+  final String? customInstruction;
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -129,16 +100,19 @@ class RewriteResult extends Equatable {
         'rewrittenText': rewrittenText,
         'tone': tone.name,
         'createdAt': createdAt.toIso8601String(),
-        'customToneName': customToneName,
+        'customInstruction': customInstruction,
       };
 
   factory RewriteResult.fromMap(Map<String, dynamic> map) => RewriteResult(
         id: map['id'] as String,
         originalText: map['originalText'] as String,
         rewrittenText: map['rewrittenText'] as String,
-        tone: ToneType.values.firstWhere((t) => t.name == map['tone']),
+        tone: ToneType.values.firstWhere(
+          (t) => t.name == map['tone'],
+          orElse: () => ToneType.professional,
+        ),
         createdAt: DateTime.parse(map['createdAt'] as String),
-        customToneName: map['customToneName'] as String?,
+        customInstruction: map['customInstruction'] as String?,
       );
 
   RewriteResult copyWith({
@@ -147,7 +121,7 @@ class RewriteResult extends Equatable {
     String? rewrittenText,
     ToneType? tone,
     DateTime? createdAt,
-    String? customToneName,
+    String? customInstruction,
   }) =>
       RewriteResult(
         id: id ?? this.id,
@@ -155,10 +129,6 @@ class RewriteResult extends Equatable {
         rewrittenText: rewrittenText ?? this.rewrittenText,
         tone: tone ?? this.tone,
         createdAt: createdAt ?? this.createdAt,
-        customToneName: customToneName ?? this.customToneName,
+        customInstruction: customInstruction ?? this.customInstruction,
       );
-
-  @override
-  List<Object?> get props =>
-      [id, originalText, rewrittenText, tone, createdAt, customToneName];
 }

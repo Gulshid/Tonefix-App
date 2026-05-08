@@ -1,121 +1,41 @@
-import 'package:equatable/equatable.dart';
+// ignore_for_file: unused_local_variable
+
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tonefix/core/services/history_service.dart';
 import 'package:tonefix/core/services/tone_engine.dart';
-import 'package:tonefix/shared/models/tone_models.dart';
+import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_event.dart';
+import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_state.dart';
 
-// ─── Events ───────────────────────────────────────────────────────────────────
-
-abstract class ToneRewriteEvent extends Equatable {
-  const ToneRewriteEvent();
-  @override
-  List<Object?> get props => [];
-}
-
-class ToneRewriteSubmitEvent extends ToneRewriteEvent {
-  const ToneRewriteSubmitEvent({
-    required this.text,
-    required this.tone,
-    this.customInstruction,
-  });
-
-  final String text;
-  final ToneType tone;
-  final String? customInstruction;
-
-  @override
-  List<Object?> get props => [text, tone, customInstruction];
-}
-
-class ToneRewriteSelectToneEvent extends ToneRewriteEvent {
-  const ToneRewriteSelectToneEvent(this.tone);
-  final ToneType tone;
-
-  @override
-  List<Object?> get props => [tone];
-}
-
-class ToneRewriteUpdateInputEvent extends ToneRewriteEvent {
-  const ToneRewriteUpdateInputEvent(this.text);
-  final String text;
-
-  @override
-  List<Object?> get props => [text];
-}
-
-class ToneRewriteResetEvent extends ToneRewriteEvent {
-  const ToneRewriteResetEvent();
-}
-
-// ─── States ──────────────────────────────────────────────────────────────────
-
-class ToneRewriteState extends Equatable {
-  const ToneRewriteState({
-    this.inputText = '',
-    this.selectedTone = ToneType.professional,
-    this.result,
-    this.isLoading = false,
-    this.errorMessage,
-  });
-
-  final String inputText;
-  final ToneType selectedTone;
-  final RewriteResult? result;
-  final bool isLoading;
-  final String? errorMessage;
-
-  bool get hasInput => inputText.trim().isNotEmpty;
-  bool get hasResult => result != null;
-  bool get hasError => errorMessage != null;
-
-  ToneRewriteState copyWith({
-    String? inputText,
-    ToneType? selectedTone,
-    RewriteResult? result,
-    bool? isLoading,
-    String? errorMessage,
-    bool clearError = false,
-    bool clearResult = false,
-  }) =>
-      ToneRewriteState(
-        inputText: inputText ?? this.inputText,
-        selectedTone: selectedTone ?? this.selectedTone,
-        result: clearResult ? null : (result ?? this.result),
-        isLoading: isLoading ?? this.isLoading,
-        errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      );
-
-  @override
-  List<Object?> get props =>
-      [inputText, selectedTone, result, isLoading, errorMessage];
-}
-
-// ─── Bloc ─────────────────────────────────────────────────────────────────────
-
+/// BLoC that orchestrates tone rewriting with typewriter streaming animation.
 class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
   ToneRewriteBloc({
     required ToneEngine toneEngine,
     required HistoryService historyService,
   })  : _toneEngine = toneEngine,
         _historyService = historyService,
-        super(const ToneRewriteState()) {
-    on<ToneRewriteSubmitEvent>(_onSubmit);
-    on<ToneRewriteSelectToneEvent>(_onSelectTone);
-    on<ToneRewriteUpdateInputEvent>(_onUpdateInput);
-    on<ToneRewriteResetEvent>(_onReset);
+        super(const ToneRewriteIdle()) {
+    on<ToneRewriteStarted>(_onStarted);
+    on<ToneRewriteToneChanged>(_onToneChanged);
+    on<ToneRewriteReset>(_onReset);
+    on<ToneRewriteCopied>(_onCopied);
+    on<ToneRewriteReplaceOriginal>(_onReplaceOriginal);
+    on<ToneRewriteStreamChunk>(_onStreamChunk);
   }
 
   final ToneEngine _toneEngine;
   final HistoryService _historyService;
+  Timer? _streamTimer;
 
-  Future<void> _onSubmit(
-    ToneRewriteSubmitEvent event,
+  Future<void> _onStarted(
+    ToneRewriteStarted event,
     Emitter<ToneRewriteState> emit,
   ) async {
-    emit(state.copyWith(
-      isLoading: true,
-      clearError: true,
-      clearResult: true,
+    _streamTimer?.cancel();
+
+    emit(ToneRewriteLoading(
+      selectedTone: event.tone,
+      inputText: event.text,
     ));
 
     try {
@@ -125,38 +45,116 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
         customInstruction: event.customInstruction,
       );
 
-      // Auto-save to Firestore history
+      // ── Typewriter streaming simulation ──────────────────────────
+      // Emits the rewritten text word-by-word for a premium streaming feel.
+      final words = result.rewrittenText.split(' ');
+      final buffer = StringBuffer();
+      int wordIndex = 0;
+
+      await emit.forEach<ToneRewriteStreamChunk>(
+        _wordStream(words),
+        onData: (chunkEvent) {
+          buffer.write(chunkEvent.chunk);
+          wordIndex++;
+          return ToneRewriteLoading(
+            selectedTone: event.tone,
+            inputText: event.text,
+            streamedText: buffer.toString(),
+          );
+        },
+      );
+
+      // ── Save to history ───────────────────────────────────────────
       await _historyService.saveRewrite(result);
 
-      emit(state.copyWith(isLoading: false, result: result));
+      emit(ToneRewriteSuccess(
+        selectedTone: event.tone,
+        inputText: event.text,
+        result: result,
+      ));
     } on ToneEngineException catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.message));
+      emit(ToneRewriteError(
+        selectedTone: event.tone,
+        inputText: event.text,
+        message: e.message,
+      ));
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Something went wrong. Please try again.',
+      emit(ToneRewriteError(
+        selectedTone: event.tone,
+        inputText: event.text,
+        message: 'Something went wrong. Please try again.',
       ));
     }
   }
 
-  void _onSelectTone(
-    ToneRewriteSelectToneEvent event,
-    Emitter<ToneRewriteState> emit,
-  ) {
-    emit(state.copyWith(selectedTone: event.tone, clearResult: true));
+  /// Streams words one-by-one with a natural delay between each.
+  Stream<ToneRewriteStreamChunk> _wordStream(List<String> words) async* {
+    for (int i = 0; i < words.length; i++) {
+      final isLast = i == words.length - 1;
+      yield ToneRewriteStreamChunk(isLast ? words[i] : '${words[i]} ');
+      // Variable delay: shorter for short words, slightly longer for longer ones
+      final delay = words[i].length > 6 ? 55 : 40;
+      await Future.delayed(Duration(milliseconds: delay));
+    }
   }
 
-  void _onUpdateInput(
-    ToneRewriteUpdateInputEvent event,
+  void _onToneChanged(
+    ToneRewriteToneChanged event,
     Emitter<ToneRewriteState> emit,
   ) {
-    emit(state.copyWith(inputText: event.text, clearResult: true));
+    final current = state;
+    if (current is ToneRewriteSuccess) {
+      // Re-trigger rewrite with same text but new tone
+      add(ToneRewriteStarted(text: current.inputText, tone: event.tone));
+    } else {
+      emit(ToneRewriteIdle(
+        selectedTone: event.tone,
+        inputText: current.inputText,
+      ));
+    }
   }
 
-  void _onReset(
-    ToneRewriteResetEvent event,
+  void _onReset(ToneRewriteReset event, Emitter<ToneRewriteState> emit) {
+    _streamTimer?.cancel();
+    emit(ToneRewriteIdle(selectedTone: state.selectedTone));
+  }
+
+  Future<void> _onCopied(
+    ToneRewriteCopied event,
+    Emitter<ToneRewriteState> emit,
+  ) async {
+    final current = state;
+    if (current is! ToneRewriteSuccess) return;
+
+    emit(current.copyWith(justCopied: true));
+    await Future.delayed(const Duration(milliseconds: 1800));
+    if (!isClosed) emit(current.copyWith(justCopied: false));
+  }
+
+  void _onReplaceOriginal(
+    ToneRewriteReplaceOriginal event,
     Emitter<ToneRewriteState> emit,
   ) {
-    emit(const ToneRewriteState());
+    final current = state;
+    if (current is! ToneRewriteSuccess) return;
+
+    emit(ToneRewriteIdle(
+      selectedTone: current.selectedTone,
+      inputText: current.result.rewrittenText,
+    ));
+  }
+
+  // Needed because emit.forEach handles stream chunks
+  void _onStreamChunk(
+    ToneRewriteStreamChunk event,
+    Emitter<ToneRewriteState> emit,
+  ) {
+    // Handled inside emit.forEach in _onStarted — no-op here.
+  }
+
+  @override
+  Future<void> close() {
+    _streamTimer?.cancel();
+    return super.close();
   }
 }
