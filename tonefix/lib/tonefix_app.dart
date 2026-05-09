@@ -5,10 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tonefix/core/di/injection_container.dart';
 import 'package:tonefix/core/theme/app_theme.dart';
 import 'package:tonefix/core/theme/theme_cubit.dart';
+import 'package:tonefix/features/custom_tone/bloc/custom_tone_bloc.dart';
+import 'package:tonefix/features/favorites/bloc/favorites_bloc.dart';
+import 'package:tonefix/features/history/bloc/history_bloc.dart';
 import 'package:tonefix/features/home/bloc/home_bloc.dart';
 import 'package:tonefix/features/home/bloc/home_event.dart';
-import 'package:tonefix/features/history/bloc/history_bloc.dart';
-import 'package:tonefix/features/history/bloc/history_event.dart';
 import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_bloc.dart';
 import 'package:tonefix/routes/app_router.dart';
 
@@ -34,6 +35,9 @@ class _ToneFixAppState extends State<ToneFixApp> {
           create: (_) => sl<HistoryBloc>()..add(const HistoryLoadEvent()),
         ),
         BlocProvider(create: (_) => sl<ToneRewriteBloc>()),
+        // Phase 3 — available app-wide so routes can access them
+        BlocProvider(create: (_) => sl<FavoritesBloc>()),
+        BlocProvider(create: (_) => sl<CustomToneBloc>()),
       ],
       child: LayoutBuilder(
         builder: (context, constraints) {

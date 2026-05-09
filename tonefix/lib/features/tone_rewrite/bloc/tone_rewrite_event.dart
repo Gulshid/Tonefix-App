@@ -14,17 +14,19 @@ class ToneRewriteStarted extends ToneRewriteEvent {
     required this.text,
     required this.tone,
     this.customInstruction,
+    this.intensity,
   });
 
   final String text;
   final ToneType tone;
   final String? customInstruction;
+  final ToneIntensity? intensity; // Phase 3 – overrides current state intensity
 
   @override
-  List<Object?> get props => [text, tone, customInstruction];
+  List<Object?> get props => [text, tone, customInstruction, intensity];
 }
 
-/// User changed the selected tone (triggers re-rewrite if result exists).
+/// User changed the selected tone.
 class ToneRewriteToneChanged extends ToneRewriteEvent {
   const ToneRewriteToneChanged(this.tone);
   final ToneType tone;
@@ -33,12 +35,21 @@ class ToneRewriteToneChanged extends ToneRewriteEvent {
   List<Object?> get props => [tone];
 }
 
+/// Phase 3 – Task 3: User changed the intensity slider.
+class ToneRewriteIntensityChanged extends ToneRewriteEvent {
+  const ToneRewriteIntensityChanged(this.intensity);
+  final ToneIntensity intensity;
+
+  @override
+  List<Object?> get props => [intensity];
+}
+
 /// User reset / cleared the current rewrite session.
 class ToneRewriteReset extends ToneRewriteEvent {
   const ToneRewriteReset();
 }
 
-/// User copied output to clipboard — bloc records this for haptics / feedback.
+/// User copied output to clipboard.
 class ToneRewriteCopied extends ToneRewriteEvent {
   const ToneRewriteCopied();
 }
@@ -55,4 +66,13 @@ class ToneRewriteStreamChunk extends ToneRewriteEvent {
 
   @override
   List<Object?> get props => [chunk];
+}
+
+/// Phase 3 – Task 4: User selected one of the alternative rewrites.
+class ToneRewriteAlternativeSelected extends ToneRewriteEvent {
+  const ToneRewriteAlternativeSelected(this.alternativeText);
+  final String alternativeText;
+
+  @override
+  List<Object?> get props => [alternativeText];
 }
