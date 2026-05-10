@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:tonefix/core/services/language_service.dart';
 import 'package:tonefix/shared/models/tone_models.dart';
 
 abstract class ToneRewriteEvent extends Equatable {
@@ -15,15 +16,17 @@ class ToneRewriteStarted extends ToneRewriteEvent {
     required this.tone,
     this.customInstruction,
     this.intensity,
+    this.selectedLanguage, // Phase 4
   });
 
   final String text;
   final ToneType tone;
   final String? customInstruction;
-  final ToneIntensity? intensity; // Phase 3 – overrides current state intensity
+  final ToneIntensity? intensity;
+  final SupportedLanguage? selectedLanguage; // Phase 4
 
   @override
-  List<Object?> get props => [text, tone, customInstruction, intensity];
+  List<Object?> get props => [text, tone, customInstruction, intensity, selectedLanguage];
 }
 
 /// User changed the selected tone.

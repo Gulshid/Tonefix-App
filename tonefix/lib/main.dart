@@ -20,9 +20,7 @@ void main() async {
   ]);
 
   // ── Firebase init ────────────────────────────────────────────────
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // ── Dependency injection ─────────────────────────────────────────
   await initDependencies();

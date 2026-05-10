@@ -299,8 +299,162 @@ class _QuickActions extends StatelessWidget {
               .animate()
               .fadeIn(delay: 400.ms, duration: 500.ms)
               .slideY(begin: 0.12, end: 0, duration: 500.ms, curve: Curves.easeOut),
+
+          SizedBox(height: 24.h),
+
+          // ── Phase 4 Feature Grid ──────────────────────────────
+          Text(
+            'NEW IN PHASE 4',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary.withOpacity(0.5),
+              letterSpacing: 1.5,
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 500.ms, duration: 400.ms),
+
+          SizedBox(height: 12.h),
+
+          Row(
+            children: [
+              Expanded(
+                child: _FeatureCard(
+                  icon: Icons.mic_rounded,
+                  label: 'Voice to Tone',
+                  description: 'Speak & rewrite',
+                  color: const Color(0xFF7C3AED),
+                  delay: 550,
+                  onTap: () => context.push(AppRoutes.voice),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _FeatureCard(
+                  icon: Icons.bar_chart_rounded,
+                  label: 'Analytics',
+                  description: 'Tone usage stats',
+                  color: const Color(0xFF0EA5E9),
+                  delay: 620,
+                  onTap: () => context.push(AppRoutes.analytics),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 12.h),
+
+          _FeatureCard(
+            icon: Icons.layers_rounded,
+            label: 'Batch Rewrite',
+            description: 'Rewrite multiple messages at once — paste & separate with ---',
+            color: const Color(0xFF059669),
+            delay: 680,
+            fullWidth: true,
+            onTap: () => context.push(AppRoutes.batch),
+          ),
         ],
       ),
     );
   }
 }
+
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
+    required this.icon,
+    required this.label,
+    required this.description,
+    required this.color,
+    required this.delay,
+    required this.onTap,
+    this.fullWidth = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String description;
+  final Color color;
+  final int delay;
+  final VoidCallback onTap;
+  final bool fullWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: fullWidth ? double.infinity : null,
+        padding: EdgeInsets.all(16.r),
+        decoration: BoxDecoration(
+          color: color.withOpacity(isDark ? 0.15 : 0.07),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
+        child: fullWidth
+            ? Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10.r),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(icon, color: color, size: 22.sp),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(label,
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                                color: color)),
+                        Text(description,
+                            style: TextStyle(
+                                fontSize: 12.sp,
+                                color: color.withOpacity(0.7))),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14.sp, color: color.withOpacity(0.5)),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10.r),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(icon, color: color, size: 22.sp),
+                  ),
+                  SizedBox(height: 10.h),
+                  Text(label,
+                      style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: color)),
+                  SizedBox(height: 2.h),
+                  Text(description,
+                      style: TextStyle(
+                          fontSize: 11.sp, color: color.withOpacity(0.7))),
+                ],
+              ),
+      ),
+    )
+        .animate()
+        .fadeIn(delay: Duration(milliseconds: delay), duration: 400.ms)
+        .slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOut);
+  }
+}
+

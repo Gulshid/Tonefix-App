@@ -2,7 +2,9 @@
 
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tonefix/core/services/analytics_service.dart';
 import 'package:tonefix/core/services/history_service.dart';
+import 'package:tonefix/core/services/language_service.dart';
 import 'package:tonefix/core/services/tone_engine.dart';
 import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_event.dart';
 import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_state.dart';
@@ -11,8 +13,10 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
   ToneRewriteBloc({
     required ToneEngine toneEngine,
     required HistoryService historyService,
+    AnalyticsService? analyticsService,
   })  : _toneEngine = toneEngine,
         _historyService = historyService,
+        _analyticsService = analyticsService,
         super(const ToneRewriteIdle()) {
     on<ToneRewriteStarted>(_onStarted);
     on<ToneRewriteToneChanged>(_onToneChanged);
@@ -26,12 +30,12 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
 
   final ToneEngine _toneEngine;
   final HistoryService _historyService;
+  final AnalyticsService? _analyticsService;
 
   Future<void> _onStarted(
     ToneRewriteStarted event,
     Emitter<ToneRewriteState> emit,
   ) async {
-    // Snapshot intensity BEFORE state changes
     final intensity = event.intensity ?? state.selectedIntensity;
 
     emit(ToneRewriteLoading(
@@ -41,12 +45,14 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
     ));
 
     try {
+      // Phase 4: pass language selection (defaults to auto)
       final result = await _toneEngine.rewrite(
         event.text,
         event.tone,
         customInstruction: event.customInstruction,
         intensity: intensity,
         alternativesCount: 2,
+        selectedLanguage: event.selectedLanguage ?? SupportedLanguage.auto,
       );
 
       final words = result.rewrittenText.split(' ');
@@ -66,6 +72,9 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
       );
 
       await _historyService.saveRewrite(result);
+
+      // Phase 4: record analytics
+      await _analyticsService?.recordRewrite(event.tone);
 
       emit(ToneRewriteSuccess(
         selectedTone: event.tone,
@@ -119,18 +128,14 @@ class ToneRewriteBloc extends Bloc<ToneRewriteEvent, ToneRewriteState> {
     }
   }
 
-  // FIX: Only stores the selected intensity — never auto-rewrites.
-  // The new intensity applies on the next Rewrite button press.
   void _onIntensityChanged(
     ToneRewriteIntensityChanged event,
     Emitter<ToneRewriteState> emit,
   ) {
     final current = state;
-
-    if (current is ToneRewriteLoading) return; // ignore mid-rewrite
+    if (current is ToneRewriteLoading) return;
 
     if (current is ToneRewriteSuccess) {
-      // Preserve output, just update intensity selection
       emit(current.copyWith(selectedIntensity: event.intensity));
       return;
     }

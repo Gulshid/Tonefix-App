@@ -3,16 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tonefix/core/services/analytics_service.dart';
 import 'package:tonefix/core/services/custom_tone_service.dart';
 import 'package:tonefix/core/services/favorites_service.dart';
 import 'package:tonefix/core/services/history_service.dart';
 import 'package:tonefix/core/services/tone_engine.dart';
+import 'package:tonefix/core/services/voice_service.dart';
 import 'package:tonefix/core/theme/theme_cubit.dart';
+import 'package:tonefix/features/analytics/bloc/analytics_bloc.dart';
+import 'package:tonefix/features/batch_rewrite/bloc/batch_bloc.dart';
 import 'package:tonefix/features/custom_tone/bloc/custom_tone_bloc.dart';
 import 'package:tonefix/features/favorites/bloc/favorites_bloc.dart';
 import 'package:tonefix/features/history/bloc/history_bloc.dart';
 import 'package:tonefix/features/home/bloc/home_bloc.dart';
 import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_bloc.dart';
+import 'package:tonefix/features/voice_to_tone/bloc/voice_bloc.dart';
 
 /// Global service locator
 final sl = GetIt.instance;
@@ -62,6 +67,15 @@ Future<void> initDependencies() async {
     ),
   );
 
+  // ─── Phase 4 Services ─────────────────────────────────────────────
+  sl.registerLazySingleton<AnalyticsService>(
+    () => AnalyticsService(prefs: sl<SharedPreferences>()),
+  );
+
+  sl.registerLazySingleton<VoiceService>(
+    () => VoiceService(),
+  );
+
   // ─── Cubits / BLoCs ───────────────────────────────────────────────
   sl.registerFactory<ThemeCubit>(
     () => ThemeCubit(sl<SharedPreferences>()),
@@ -75,6 +89,7 @@ Future<void> initDependencies() async {
     () => ToneRewriteBloc(
       toneEngine: sl<ToneEngine>(),
       historyService: sl<HistoryService>(),
+      analyticsService: sl<AnalyticsService>(),
     ),
   );
 
@@ -89,6 +104,22 @@ Future<void> initDependencies() async {
 
   sl.registerFactory<FavoritesBloc>(
     () => FavoritesBloc(favoritesService: sl<FavoritesService>()),
+  );
+
+  // ─── Phase 4 BLoCs ────────────────────────────────────────────────
+  sl.registerFactory<AnalyticsBloc>(
+    () => AnalyticsBloc(analyticsService: sl<AnalyticsService>()),
+  );
+
+  sl.registerFactory<VoiceBloc>(
+    () => VoiceBloc(
+      voiceService: sl<VoiceService>(),
+      toneEngine: sl<ToneEngine>(),
+    ),
+  );
+
+  sl.registerFactory<BatchBloc>(
+    () => BatchBloc(toneEngine: sl<ToneEngine>()),
   );
 
   // Ensure anonymous auth on startup so Firestore rules work

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tonefix/core/constants/app_colors.dart';
 import 'package:tonefix/core/di/injection_container.dart';
+import 'package:tonefix/core/services/language_service.dart';
 import 'package:tonefix/core/theme/theme_cubit.dart';
 import 'package:tonefix/features/favorites/bloc/favorites_bloc.dart';
 import 'package:tonefix/features/tone_rewrite/bloc/tone_rewrite_bloc.dart';
@@ -34,6 +35,7 @@ class RewriteScreen extends StatefulWidget {
 class _RewriteScreenState extends State<RewriteScreen> {
   late final TextEditingController _textController;
   late ToneType _selectedTone;
+  SupportedLanguage _selectedLanguage = SupportedLanguage.auto; // Phase 4
   final _focusNode = FocusNode();
 
   @override
@@ -63,7 +65,12 @@ class _RewriteScreenState extends State<RewriteScreen> {
     final intensity =
         context.read<ToneRewriteBloc>().state.selectedIntensity;
     context.read<ToneRewriteBloc>().add(
-          ToneRewriteStarted(text: text, tone: _selectedTone, intensity: intensity),
+          ToneRewriteStarted(
+            text: text,
+            tone: _selectedTone,
+            intensity: intensity,
+            selectedLanguage: _selectedLanguage,
+          ),
         );
   }
 
@@ -188,6 +195,17 @@ class _RewriteScreenState extends State<RewriteScreen> {
                       onChanged: _onIntensityChanged,
                       toneColor: _selectedTone.color,
                       isEnabled: state is! ToneRewriteLoading,
+                    ),
+                  ),
+
+                  SliverToBoxAdapter(child: SizedBox(height: 12.h)),
+
+                  // ── Language selector (Phase 4) ───────────────────
+                  SliverToBoxAdapter(
+                    child: _LanguagePicker(
+                      selected: _selectedLanguage,
+                      onChanged: (lang) =>
+                          setState(() => _selectedLanguage = lang),
                     ),
                   ),
 
@@ -845,6 +863,97 @@ class _ThemeToggleButton extends StatelessWidget {
             child: Center(child: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, size: 12.sp, color: Colors.white)),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 4 – Language Picker
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LanguagePicker extends StatelessWidget {
+  const _LanguagePicker({required this.selected, required this.onChanged});
+
+  final SupportedLanguage selected;
+  final void Function(SupportedLanguage) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.language_rounded,
+                  size: 15.sp,
+                  color: theme.colorScheme.onSurface.withOpacity(0.5)),
+              SizedBox(width: 6.w),
+              Text(
+                'LANGUAGE',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.1,
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          SizedBox(
+            height: 38.h,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: SupportedLanguage.values.map((lang) {
+                final isSelected = lang == selected;
+                return Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: GestureDetector(
+                    onTap: () => onChanged(lang),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.w, vertical: 7.h),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary
+                            : theme.cardColor,
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : theme.dividerColor,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(lang.flag,
+                              style: TextStyle(fontSize: 14.sp)),
+                          SizedBox(width: 5.w),
+                          Text(
+                            lang.label,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

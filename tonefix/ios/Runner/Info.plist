@@ -45,5 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- ── Phase 4: Voice-to-Tone permissions ─────────────────────── -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ToneFix uses speech recognition to transcribe your voice so it can rewrite your message in your chosen tone.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ToneFix needs microphone access to record your voice for the Voice-to-Tone feature.</string>
+
 </dict>
 </plist>

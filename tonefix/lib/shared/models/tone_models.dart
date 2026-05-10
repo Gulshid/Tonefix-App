@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tonefix/core/constants/app_colors.dart';
+import 'package:tonefix/core/services/language_service.dart';
 
 /// All supported tone types for message rewriting.
 enum ToneType {
@@ -274,6 +275,7 @@ class RewriteResult {
     this.customInstruction,
     this.intensity = ToneIntensity.moderate,
     this.alternatives = const [],
+    this.detectedLanguage = SupportedLanguage.english,
   });
 
   final String id;
@@ -283,11 +285,14 @@ class RewriteResult {
   final DateTime createdAt;
   final String? customInstruction;
 
-  /// Phase 3 – Task 3: intensity level used for this rewrite.
+  /// Phase 3: intensity level used for this rewrite.
   final ToneIntensity intensity;
 
-  /// Phase 3 – Task 4: alternative rewrites shown in the bottom sheet.
+  /// Phase 3: alternative rewrites shown in the bottom sheet.
   final List<String> alternatives;
+
+  /// Phase 4: language detected/used for this rewrite.
+  final SupportedLanguage detectedLanguage;
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -297,6 +302,7 @@ class RewriteResult {
         'createdAt': createdAt.toIso8601String(),
         'customInstruction': customInstruction,
         'intensity': intensity.name,
+        'detectedLanguage': detectedLanguage.name,
       };
 
   factory RewriteResult.fromMap(Map<String, dynamic> map) => RewriteResult(
@@ -313,6 +319,10 @@ class RewriteResult {
           (i) => i.name == (map['intensity'] ?? 'moderate'),
           orElse: () => ToneIntensity.moderate,
         ),
+        detectedLanguage: SupportedLanguage.values.firstWhere(
+          (l) => l.name == (map['detectedLanguage'] ?? 'english'),
+          orElse: () => SupportedLanguage.english,
+        ),
       );
 
   RewriteResult copyWith({
@@ -324,6 +334,7 @@ class RewriteResult {
     String? customInstruction,
     ToneIntensity? intensity,
     List<String>? alternatives,
+    SupportedLanguage? detectedLanguage,
   }) =>
       RewriteResult(
         id: id ?? this.id,
@@ -334,5 +345,6 @@ class RewriteResult {
         customInstruction: customInstruction ?? this.customInstruction,
         intensity: intensity ?? this.intensity,
         alternatives: alternatives ?? this.alternatives,
+        detectedLanguage: detectedLanguage ?? this.detectedLanguage,
       );
 }
