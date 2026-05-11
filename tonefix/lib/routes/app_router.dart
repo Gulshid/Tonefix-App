@@ -3,20 +3,24 @@ import 'package:tonefix/features/analytics/ui/analytics_screen.dart';
 import 'package:tonefix/features/batch_rewrite/ui/batch_screen.dart';
 import 'package:tonefix/features/history/ui/history_screen.dart';
 import 'package:tonefix/features/home/ui/home_screen.dart';
+import 'package:tonefix/features/onboarding/ui/onboarding_screen.dart';
+import 'package:tonefix/features/settings/ui/settings_screen.dart';
 import 'package:tonefix/features/splash/ui/splash_screen.dart';
 import 'package:tonefix/features/tone_rewrite/ui/rewrite_screen.dart';
 import 'package:tonefix/features/voice_to_tone/ui/voice_screen.dart';
 import 'package:tonefix/shared/models/tone_models.dart';
 
 abstract class AppRoutes {
-  static const splash    = '/';
-  static const home      = '/home';
-  static const rewrite   = '/rewrite';
-  static const history   = '/history';
-  // ── Phase 4 ──────────────────────────
-  static const analytics = '/analytics';
-  static const voice     = '/voice';
-  static const batch     = '/batch';
+  static const splash      = '/';
+  static const onboarding  = '/onboarding';   // ← Phase 5
+  static const home        = '/home';
+  static const rewrite     = '/rewrite';
+  static const history     = '/history';
+  static const settings    = '/settings';     // ← Phase 5
+  // ── Phase 4 ──────────────────────────────────
+  static const analytics   = '/analytics';
+  static const voice       = '/voice';
+  static const batch       = '/batch';
 }
 
 abstract class AppRouter {
@@ -27,6 +31,13 @@ abstract class AppRouter {
             path: AppRoutes.splash,
             builder: (_, __) => const SplashScreen(),
           ),
+
+          // ── Phase 5: Onboarding ──────────────────────────────────
+          GoRoute(
+            path: AppRoutes.onboarding,
+            builder: (_, __) => const OnboardingScreen(),
+          ),
+
           GoRoute(
             path: AppRoutes.home,
             builder: (_, __) => const HomeScreen(),
@@ -42,6 +53,13 @@ abstract class AppRouter {
             path: AppRoutes.history,
             builder: (_, __) => const HistoryScreen(),
           ),
+
+          // ── Phase 5: Settings ────────────────────────────────────
+          GoRoute(
+            path: AppRoutes.settings,
+            builder: (_, __) => const SettingsScreen(),
+          ),
+
           // ── Phase 4 ──────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.analytics,

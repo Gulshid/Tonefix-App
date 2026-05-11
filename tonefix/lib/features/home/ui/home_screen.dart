@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:tonefix/core/constants/app_colors.dart';
 import 'package:tonefix/core/theme/theme_cubit.dart';
 import 'package:tonefix/routes/app_router.dart';
+import 'package:tonefix/shared/widgets/feedback_button.dart';
 
-/// Phase 2: Updated home screen with animated dark/light mode toggle (Task 5)
-/// and smooth entry animations for all elements.
+/// HomeScreen — updated Phase 5: Settings icon + Feedback FAB added.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -19,6 +19,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor:
           isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+      floatingActionButton: const FeedbackButton(),
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -92,6 +93,19 @@ class _HomeAppBar extends StatelessWidget {
             onTap: () => context.push(AppRoutes.history),
             child: Icon(
               Icons.history_rounded,
+              size: 22.sp,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+            ),
+          ),
+          SizedBox(width: 18.w),
+
+          // Phase 5: Settings button
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.settings),
+            child: Icon(
+              Icons.settings_outlined,
               size: 22.sp,
               color: isDark
                   ? AppColors.textSecondaryDark

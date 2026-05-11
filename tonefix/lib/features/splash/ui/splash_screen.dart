@@ -3,7 +3,17 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tonefix/core/constants/app_colors.dart';
+import 'package:tonefix/features/onboarding/ui/onboarding_screen.dart';
 import 'package:tonefix/routes/app_router.dart';
+
+/// ──────────────────────────────────────────────────────────────────────────
+/// SplashScreen  –  Updated Phase 5
+///
+/// After the animation, checks whether onboarding has been completed
+/// and routes accordingly:
+///   • First launch  → /onboarding
+///   • Returning     → /home
+/// ──────────────────────────────────────────────────────────────────────────
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +31,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigate() async {
     await Future.delayed(const Duration(milliseconds: 2200));
-    if (mounted) context.go(AppRoutes.home);
+    if (!mounted) return;
+
+    final onboardingDone = await OnboardingScreen.isComplete();
+    if (!mounted) return;
+
+    if (onboardingDone) {
+      context.go(AppRoutes.home);
+    } else {
+      context.go(AppRoutes.onboarding);
+    }
   }
 
   @override
@@ -69,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
             SizedBox(height: 24.h),
 
-            // App name
             Text(
               'ToneFix',
               style: Theme.of(context).textTheme.displayMedium?.copyWith(
@@ -93,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
             SizedBox(height: 64.h),
 
-            // Loading dots
             _LoadingDots()
                 .animate(delay: 900.ms)
                 .fadeIn(duration: 400.ms),

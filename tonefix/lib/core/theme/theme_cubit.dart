@@ -7,6 +7,10 @@ class ThemeCubit extends Cubit<ThemeMode> {
     _loadTheme();
   }
 
+  void toggleTheme() {
+    emit(state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+  }
+
   final SharedPreferences _prefs;
   static const _key = 'theme_mode';
 
